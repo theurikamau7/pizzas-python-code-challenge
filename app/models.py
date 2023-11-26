@@ -3,6 +3,7 @@ from sqlalchemy_serializer import SerializerMixin
 
 db = SQLAlchemy()
 
+# Restaurant
 class Restaurant(db.Model, SerializerMixin):
     __tablename__ = 'restaurants'
     
@@ -15,6 +16,7 @@ class Restaurant(db.Model, SerializerMixin):
     pizzas = db.relationship('Pizza', back_populates='restaurant')
     restaurant_pizzas = db.relationship('RestaurantPizza', back_populates='restaurant')
 
+# Pizza
 class Pizza(db.Model, SerializerMixin):
     __tablename__ = 'pizzas'
     serialize_rules = ('-restaurant_pizzas.pizza',)
@@ -25,13 +27,14 @@ class Pizza(db.Model, SerializerMixin):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
-    # Define the foreign key
+    # Defining the foreign key
     restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))
 
     # Pizzas relationship (One to many, one pizza has many varieties)
     restaurant = db.relationship('Restaurant', back_populates='pizzas')
     restaurant_pizzas = db.relationship('RestaurantPizza', back_populates='pizza')
 
+# RestaurantPizza
 class RestaurantPizza(db.Model, SerializerMixin):
     __tablename__ = 'restaurant_pizzas'
 
