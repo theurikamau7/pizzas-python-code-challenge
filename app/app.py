@@ -11,16 +11,17 @@ app.json_encoder.compact = False
 
 api = Api(app)
 
+
 migrate = Migrate(app, db)
 
-db.init_app(app)
 
+db.init_app(app)
 
 class Home(Resource):
     def get(self):
         return {"name": "home"}
 
-
+# Resource for Restaurant
 class RestaurantResource(Resource):
     def get(self, id=None):
         if id is None:
@@ -29,23 +30,28 @@ class RestaurantResource(Resource):
             return self.get_by_id(id)
 
     def get_by_id(self, id):
+        # Retrieve a restaurant by its ID
         restaurant = db.session.query(Restaurant).filter_by(id=id).first()
 
         if restaurant:
+            # Create a response with restaurant details
             restaurant_obj = {
                 'name': restaurant.name,
                 'address': restaurant.address
             }
             response = make_response(jsonify(restaurant_obj), 200)
         else:
+             # Create a response showing that the restaurant was not found
             response = make_response(jsonify({'error': 'Restaurant not found'}), 404)
 
         response.headers['Content-Type'] = 'application/json'
         return response
 
     def get_all(self):
+        # Retrieve all restaurants from the database
         restaurants = db.session.query(Restaurant).all()
         restaurant_list = []
+        # List of restaurant objects
         for restaurant in restaurants:
             restaurant_obj = {
                 'id': restaurant.id,
@@ -53,58 +59,73 @@ class RestaurantResource(Resource):
                 'address': restaurant.address
             }
             restaurant_list.append(restaurant_obj)
+        #Response with the list of restaurants
         response = make_response(jsonify(restaurant_list), 200)
         response.headers['Content-Type'] = 'application/json'
         return response
 
     def post(self):
+        # Handle the creation of a new restaurant
         data = request.get_json()
         name = data.get('name')
         address = data.get('address')
 
         if name and address:
+            # Create a new restaurant instance and add it to the db
             restaurant = Restaurant(name=name, address=address)
             db.session.add(restaurant)
             db.session.commit()
 
+            # Response showing successful creation
             response = make_response(jsonify({'message': 'Restaurant created successfully'}), 201)
         else:
+            # Response showing missing fields
             response = make_response(jsonify({'error': 'Missing required fields'}), 400)
 
         response.headers['Content-Type'] = 'application/json'
         return response
 
     def put(self, id):
+        # Handle the update of an existing restaurant
         restaurant = db.session.query(Restaurant).filter_by(id=id).first()
 
         if restaurant:
+             # Retrieve data
             data = request.get_json()
             name = data.get('name')
             address = data.get('address')
 
             if name and address:
+                # Update restaurant details and commit changes to db
                 restaurant.name = name
                 restaurant.address = address
                 db.session.commit()
 
+                # Response indicating successful update
                 response = make_response(jsonify({'message': 'Restaurant updated successfully'}), 200)
             else:
+                # Response indicating missing required fields
                 response = make_response(jsonify({'error': 'Missing required fields'}), 400)
         else:
+            # Response showing the restaurant not found
             response = make_response(jsonify({'error': 'Restaurant not found'}), 404)
 
         response.headers['Content-Type'] = 'application/json'
         return response
 
     def delete(self, id):
+        # Handle the deletion of an already existing restaurant
         restaurant = db.session.query(Restaurant).filter_by(id=id).first()
 
         if restaurant:
+            # Delete the restaurant from the db and commit changes
             db.session.delete(restaurant)
             db.session.commit()
 
+            # Reesponse indicating successful deletion
             response = make_response(jsonify({'message': 'Restaurant deleted successfully'}), 200)
         else:
+            # Response indicating that the restaurant was not found
             response = make_response(jsonify({'error': 'Restaurant not found'}), 404)
 
         response.headers['Content-Type'] = 'application/json'
